@@ -110,38 +110,6 @@ for(j=nImages;j>0;j--){
 	highHitArray = Array.concat(highHitArray, title+" mid ROI");
 	lowHitArray = Array.concat(lowHitArray, title+" mid ROI");
 
-	//run("Clear Results");
-	//roiManager("Select", midArray);
-	//for(f=0;f<midArray.length;f++){
-	//	setSlice(1);
-	//	run("Clear Results");
-	//	roiManager("Measure");
-	//	for(g=0;g<nResults;g++){
-	//		test = getResult("%Area",g);
-	//		if(test>0){
-	//			highHitArray = Array.concat(highHitArray,test);
-	//		}
-	//	}
-	//	run("Clear Results");
-	//	setSlice(2);
-	//	roiManager("Measure");
-	//	for(g=0;g<nResults;g++){
-	//		test = getResult("%Area",g);
-	//		if(test>0){
-	//			midHitArray = Array.concat(midHitArray,test);
-	//		}
-	//	}
-	//	run("Clear Results");
-	//	setSlice(3);
-	//	roiManager("Measure");
-	//	for(g=0;g<nResults;g++){
-	//		test = getResult("%Area",g);
-	//		if(test>0){
-	//			lowHitArray = Array.concat(lowHitArray,test);
-	//		}
-	//	}
-	//}
-
 	run("Clear Results");
 	roiManager("Select", midArray);
 	setSlice(1);
@@ -209,6 +177,6 @@ for(j=nImages;j>0;j--){
 
 Array.show(midHitArray,highHitArray,lowHitArray);
 
-	//get this after the images have been merged, have each set of ROI
-	//go to each channel and see how many have 100% overlap, 50%, etc...mostly the high should be 0 or 100
-	//
+//get this after the images have been merged, have each set of ROI
+//go to each channel and see how many have 100% overlap, 50%, etc...mostly the high should be 0 or 100
+//
