@@ -1,0 +1,214 @@
+print("Title	low	mid	high	puncta low	puncta mid	puncta high	");
+midHitArray = newArray("Title");
+highHitArray = newArray("Title");
+lowHitArray = newArray("Title");
+for(j=nImages;j>0;j--){	
+	lower = 0;
+	upper = 255;
+	
+	//get the average of the thresholds from one of the conditions and 
+	//apply it to the others?
+
+	//issue here is finding a condition that would have signal in one
+	//or more of the three selected thresholds. But, having the
+	//consistency between conditions would be beneficial
+
+	midArray = newArray();
+	highArray = newArray();
+	lowArray = newArray();
+	
+	roiManager("Reset");
+	selectImage(j);
+	title = getTitle();
+	selectImage(title);
+	rename("mid");
+	run("Duplicate...", "title=high");
+	run("Duplicate...", "title=low");
+	selectImage("mid");
+	run("Gaussian Blur...", "sigma=1");
+	setAutoThreshold("Default dark");
+	getThreshold(lower, upper);
+	run("Convert to Mask");
+	selectImage("mid");
+	run("Watershed");
+	run("Analyze Particles...", "size=1-300 show=Masks add");
+	midCount = roiManager("count");
+	for(p=0;p<midCount;p++){
+		midArray = Array.concat(midArray,p);
+	}
+	selectImage("high");
+	run("Gaussian Blur...", "sigma=1");
+	setThreshold((lower+60), upper);
+	run("Convert to Mask");
+	selectImage("high");
+	run("Watershed");
+	run("Analyze Particles...", "size=1-300 show=Masks add");
+	highCount = roiManager("count");
+	for(z=p;z<highCount;z++){
+		highArray = Array.concat(highArray,z);
+	}
+	selectImage("low");
+	run("Gaussian Blur...", "sigma=1");
+	setThreshold((lower-60), upper);
+	run("Convert to Mask");
+	selectImage("low");
+	run("Watershed");
+	run("Analyze Particles...", "size=1-300 show=Masks add");
+	lowCount = roiManager("count");
+	for(c=z;c<lowCount;c++){
+		lowArray = Array.concat(lowArray,c);
+	}
+	
+	if(midArray.length>lowArray.length&highArray.length){
+		length = midArray.length;
+	}
+	else if(lowArray.length>midArray.length&highArray.length){
+		length = lowArray.length;
+	}
+	else if(highArray.length>lowArray.length&midArray.length){
+		length = highArray.length;
+		//the high puncta should overlap 100% with the mid, but
+		//they are sometimes on mid puncta that are too big for the
+		//1-300 pix area constraint and that gets into like, whether or not it's
+		//a real punctum
+	}
+	
+	//want to have the mid puncta be confirmed with the high puncta but not miss
+	//as many puncta as that would have it miss
+	
+	//should also figure out a way to keep the threshold consistent across conditions
+	//maybe have it go through the folder + print out the high, mid, low thresholds to be averaged?
+	
+	run("Merge Channels...", "c1=mid c2=high c3=low create");
+	selectImage("Composite");
+	rename(title+"_thresholded");
+	run("Channels Tool...");
+	setSlice(1);
+	run("Red");
+	setSlice(2);
+	run("Green");
+	setSlice(3);
+	run("Blue");
+	
+	run("Merge Channels...", "c1=[Mask of mid] c2=[Mask of high] c3=[Mask of low] create");
+	selectImage("Composite");
+	rename(title+"_Masks");
+	run("Channels Tool...");
+	setSlice(1);
+	run("Red");
+	setSlice(2);
+	run("Green");
+	setSlice(3);	
+	run("Blue");
+	print(title+"	"+(lower-60)+"	"+(lower)+"	"+(lower+60)+"	"+lowArray.length+"	"+midArray.length+"	"+highArray.length);
+
+	//shouldn't need to test all three over all three layers - there feels like there's
+	//redundancy that could be taken advantage of to streamline this code
+
+	selectImage(title+"_Masks");
+	midHitArray = Array.concat(midHitArray,title+" mid ROI");
+	highHitArray = Array.concat(highHitArray, title+" mid ROI");
+	lowHitArray = Array.concat(lowHitArray, title+" mid ROI");
+
+	//run("Clear Results");
+	//roiManager("Select", midArray);
+	//for(f=0;f<midArray.length;f++){
+	//	setSlice(1);
+	//	run("Clear Results");
+	//	roiManager("Measure");
+	//	for(g=0;g<nResults;g++){
+	//		test = getResult("%Area",g);
+	//		if(test>0){
+	//			highHitArray = Array.concat(highHitArray,test);
+	//		}
+	//	}
+	//	run("Clear Results");
+	//	setSlice(2);
+	//	roiManager("Measure");
+	//	for(g=0;g<nResults;g++){
+	//		test = getResult("%Area",g);
+	//		if(test>0){
+	//			midHitArray = Array.concat(midHitArray,test);
+	//		}
+	//	}
+	//	run("Clear Results");
+	//	setSlice(3);
+	//	roiManager("Measure");
+	//	for(g=0;g<nResults;g++){
+	//		test = getResult("%Area",g);
+	//		if(test>0){
+	//			lowHitArray = Array.concat(lowHitArray,test);
+	//		}
+	//	}
+	//}
+
+	run("Clear Results");
+	roiManager("Select", midArray);
+	setSlice(1);
+	roiManager("Measure");
+	midresults = nResults;
+	for(g=0;g<nResults;g++){
+		test = getResult("%Area",g);
+		if(test>0){
+			midHitArray = Array.concat(midHitArray,test);
+		}
+	}
+	midHitResults = midHitArray.length;
+	setSlice(2);
+	run("Clear Results");
+	roiManager("Measure");
+	for(g=0;g<nResults;g++){
+		test = getResult("%Area",g);
+		if(test>0){
+			highHitArray = Array.concat(highHitArray,test);
+		}
+	}
+	setSlice(3);	
+	run("Clear Results");
+	roiManager("Measure");
+	for(g=0;g<nResults;g++){
+		test = getResult("%Area",g);
+		if(test>0){
+			lowHitArray = Array.concat(lowHitArray,test);
+		}
+	}
+	selectImage(title+"_Masks");
+	
+	midHitArray = Array.concat(midHitArray,title+" high ROI");
+	highHitArray = Array.concat(highHitArray, title+" high ROI");
+	lowHitArray = Array.concat(lowHitArray, title+" high ROI");
+	run("Clear Results");
+	roiManager("Select", highArray);
+	setSlice(1);
+	roiManager("Measure");
+	for(g=0;g<nResults;g++){
+		test = getResult("%Area",g);
+		if(test>0){
+			midHitArray = Array.concat(midHitArray,test);
+		}
+	}
+	setSlice(2);
+	run("Clear Results");
+	roiManager("Measure");
+	for(g=0;g<nResults;g++){
+		test = getResult("%Area",g);
+		if(test>0){
+			highHitArray = Array.concat(highHitArray,test);
+		}
+	}
+	setSlice(3);	
+	run("Clear Results");
+	roiManager("Measure");
+	for(g=0;g<nResults;g++){
+		test = getResult("%Area",g);
+		if(test>0){
+			lowHitArray = Array.concat(lowHitArray,test);
+		}
+	}
+}
+
+Array.show(midHitArray,highHitArray,lowHitArray);
+
+	//get this after the images have been merged, have each set of ROI
+	//go to each channel and see how many have 100% overlap, 50%, etc...mostly the high should be 0 or 100
+	//
